@@ -138,15 +138,19 @@ module.exports = {
       const userData = await db.users.findOne({ where: { id: userID } });
       if (userData && !userData.approved && userInfo.approved) {
         // Notify user for account approval via email.
-        const emailContent = [
-          {
-            name: `${userData.first_name} ${userData.last_name}`,
-            email: userData.email,
-            webLoginUrl: config.web_site_url + "login",
-            logo: config.email_logo,
-          },
-        ];
-        const result = await sendEmail("account_approval", emailContent);
+        try {
+          const emailContent = [
+            {
+              name: `${userData.first_name} ${userData.last_name}`,
+              email: userData.email,
+              webLoginUrl: config.web_site_url + "login",
+              logo: config.email_logo,
+            },
+          ];
+          await sendEmail("account_approval", emailContent);
+        } catch (emailError) {
+          console.error("Failed to send approval email:", emailError.message);
+        }
       }
       db.users
         .update(userInfo, { where: { id: userID } })
